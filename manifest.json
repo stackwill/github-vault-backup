@@ -1,7 +1,7 @@
 {
   "id": "github-vault-backup",
   "name": "GitHub Vault Backup",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.11.4",
   "description": "Periodically back up your vault to a private GitHub repository.",
   "author": "Will",

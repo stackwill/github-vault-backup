@@ -1,6 +1,6 @@
 {
   "name": "obsidian-github-backup",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Rate-limit-aware private GitHub backups for Obsidian vaults",
   "repository": "https://github.com/stackwill/github-vault-backup",

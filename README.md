@@ -12,7 +12,7 @@ An Obsidian community plugin that mirrors a vault to a dedicated private GitHub 
 - SHA comparison uploads only changed files
 - Rate-limit reserve, 30-minute minimum schedule, and no commit when nothing changed
 - Manual ribbon and command-palette backup
-- Automatic exclusion of workspace state, caches, Edit History, Draftline, trash, Git metadata, and the backup plugin itself
+- Automatic exclusion of workspace state, caches, macOS `.DS_Store` files, Edit History, Draftline, trash, Git metadata, and the backup plugin itself
 - Multi-device three-way synchronization with conflict detection and deletion protection
 - Restore-from-GitHub workflow for new devices
 - In-plugin update checks backed by GitHub release assets

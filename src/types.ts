@@ -26,6 +26,8 @@ export const DEFAULT_SETTINGS: BackupSettings = {
 
 /** Safety and high-churn exclusions that users cannot accidentally remove. */
 export const AUTOMATIC_EXCLUSIONS = [
+  ".DS_Store",
+  "**/.DS_Store",
   ".git/**",
   ".trash/**",
   ".obsidian/cache/**",
