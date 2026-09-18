@@ -1,0 +1,18 @@
+{
+  "name": "obsidian-github-backup",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Rate-limit-aware private GitHub backups for Obsidian vaults",
+  "repository": "https://github.com/stackwill/github-vault-backup",
+  "scripts": {
+    "dev": "bun run build --watch",
+    "build": "tsc --noEmit --skipLibCheck && bun build src/main.ts --target=browser --format=cjs --external=obsidian --outfile=main.js",
+    "check": "tsc --noEmit --skipLibCheck"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "builtin-modules": "latest",
+    "obsidian": "latest",
+    "typescript": "latest"
+  }
+}

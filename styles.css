@@ -1,0 +1,9 @@
+.github-backup-modal { max-width: 640px; }
+.github-backup-modal .github-backup-steps { display: flex; gap: 8px; margin-bottom: 20px; }
+.github-backup-modal .github-backup-step { color: var(--text-muted); font-size: var(--font-ui-small); }
+.github-backup-modal .github-backup-step.is-active { color: var(--text-accent); font-weight: var(--font-semibold); }
+.github-backup-modal .github-backup-code { font-family: var(--font-monospace); }
+.github-backup-modal .github-backup-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.github-backup-modal .github-backup-status { min-height: 24px; color: var(--text-muted); margin-top: 12px; }
+.github-backup-modal .github-backup-status.is-error { color: var(--text-error); }
+.github-backup-summary { padding: 12px; border-radius: var(--radius-s); background: var(--background-secondary); margin-bottom: 16px; }
