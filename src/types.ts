@@ -8,6 +8,7 @@ export interface BackupSettings {
   exclusions: string[];
   lastBackupAt: number | null;
   lastCommitSha: string;
+  lastSyncedDeviceId: string;
   lastError: string;
 }
 
@@ -16,11 +17,12 @@ export const DEFAULT_SETTINGS: BackupSettings = {
   owner: "",
   repo: "",
   branch: "main",
-  intervalMinutes: 60,
+  intervalMinutes: 15,
   runOnStartup: true,
   exclusions: [],
   lastBackupAt: null,
   lastCommitSha: "",
+  lastSyncedDeviceId: "",
   lastError: ""
 };
 

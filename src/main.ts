@@ -12,28 +12,30 @@ export default class GitHubBackupPlugin extends Plugin {
   private backupRunning = false;
   private scheduleId?: number;
   private statusBar?: HTMLElement;
+  private currentDeviceId = "";
   private backupStatus = "Idle";
   private readonly backupStatusListeners = new Set<(message: string, finished: boolean) => void>();
 
   async onload(): Promise<void> {
     await this.loadSettings();
+    this.currentDeviceId = this.getOrCreateDeviceId();
     this.statusBar = this.addStatusBarItem();
     this.updateStatusBar();
-    this.addRibbonIcon("cloud-upload", "Back up vault to GitHub", () => {
+    this.addRibbonIcon("refresh-cw", "Sync vault with GitHub", () => {
       if (this.isConfigured()) this.openDashboard();
       else new ConnectionModal(this.app, this).open();
     });
     this.addCommand({
-      id: "backup-now",
-      name: "Back up now",
+      id: "sync-now",
+      name: "Sync now",
       callback: () => this.isConfigured() ? this.openDashboard() : new ConnectionModal(this.app, this).open()
     });
-    this.addCommand({ id: "configure", name: "Configure GitHub backup", callback: () => new ConnectionModal(this.app, this).open() });
+    this.addCommand({ id: "configure", name: "Configure GitHub sync", callback: () => new ConnectionModal(this.app, this).open() });
     this.addSettingTab(new BackupSettingTab(this.app, this));
     this.restartSchedule();
     this.app.workspace.onLayoutReady(() => {
       if (this.settings.runOnStartup && this.isConfigured()) {
-        window.setTimeout(() => void this.runBackup(false), 15_000);
+        window.setTimeout(() => void this.runBackup(false), 5_000);
       }
     });
   }
@@ -67,14 +69,14 @@ export default class GitHubBackupPlugin extends Plugin {
 
   restartSchedule(): void {
     if (this.scheduleId !== undefined) window.clearInterval(this.scheduleId);
-    const milliseconds = Math.max(30, this.settings.intervalMinutes) * 60_000;
+    const milliseconds = Math.max(5, this.settings.intervalMinutes) * 60_000;
     this.scheduleId = window.setInterval(() => void this.runBackup(false), milliseconds);
     this.registerInterval(this.scheduleId);
   }
 
   async runBackup(showNotices: boolean, allowDeletions = false): Promise<void> {
     if (this.backupRunning) {
-      if (showNotices) new Notice("A GitHub backup is already running.");
+      if (showNotices) new Notice("A GitHub sync is already running.");
       return;
     }
     if (!this.isConfigured()) {
@@ -90,28 +92,30 @@ export default class GitHubBackupPlugin extends Plugin {
     }
     this.backupRunning = true;
     this.setBackupStatus("Reading vault files…");
-    this.statusBar?.setText("GitHub backup: working…");
+    this.statusBar?.setText("GitHub sync: working…");
     try {
       const client = new GitHubClient(token);
       const repo = await client.getRepository(this.settings.owner, this.settings.repo);
-      if (!repo.private) throw new Error("Backup stopped: the selected GitHub repository is not private.");
-      await this.reconcileRemote(client, false);
+      if (!repo.private) throw new Error("Sync stopped: the selected GitHub repository is not private.");
+      const isFirstSyncOnDevice = this.settings.lastSyncedDeviceId !== this.currentDeviceId;
+      await this.reconcileRemote(client, isFirstSyncOnDevice);
       const files = await this.readVaultFiles();
       const result = await client.backup(this.settings.owner, this.settings.repo, this.settings.branch, files, this.settings.lastCommitSha, allowDeletions, (message) => this.setBackupStatus(message));
       this.settings.lastBackupAt = Date.now();
       this.settings.lastCommitSha = result.commitSha ?? this.settings.lastCommitSha;
+      this.settings.lastSyncedDeviceId = this.currentDeviceId;
       this.settings.lastError = "";
       await this.saveSettings();
       this.setBackupStatus(result.skipped ? "Already up to date." : `Complete: ${result.changed} changed, ${result.deleted} deleted.`);
       if (showNotices) {
-        new Notice(result.skipped ? "GitHub backup is already up to date." : `GitHub backup complete: ${result.changed} changed, ${result.deleted} deleted.`);
+        new Notice(result.skipped ? "GitHub sync is already up to date." : `GitHub sync complete: ${result.changed} uploaded, ${result.deleted} deleted.`);
       }
     } catch (error) {
       this.settings.lastError = error instanceof Error ? error.message : String(error);
       await this.saveSettings();
       this.setBackupStatus(`Failed: ${this.settings.lastError}`);
-      console.error("GitHub Vault Backup failed", error);
-      if (showNotices) new Notice(`GitHub backup failed: ${this.settings.lastError}`, 10_000);
+      console.error("GitHub Vault Sync failed", error);
+      if (showNotices) new Notice(`GitHub sync failed: ${this.settings.lastError}`, 10_000);
     } finally {
       this.backupRunning = false;
       this.updateStatusBar();
@@ -127,6 +131,7 @@ export default class GitHubBackupPlugin extends Plugin {
     this.setBackupStatus("Inspecting the GitHub backup…");
     try {
       await this.reconcileRemote(new GitHubClient(token), true);
+      this.settings.lastSyncedDeviceId = this.currentDeviceId;
       this.settings.lastBackupAt = Date.now();
       this.settings.lastError = "";
       await this.saveSettings();
@@ -145,13 +150,22 @@ export default class GitHubBackupPlugin extends Plugin {
   statusDescription(): string {
     if (this.backupRunning) return this.backupStatus;
     if (this.settings.lastError) return `Last error: ${this.settings.lastError}`;
-    if (!this.settings.lastBackupAt) return "No successful backup yet.";
-    return `Last successful check: ${new Date(this.settings.lastBackupAt).toLocaleString()}`;
+    if (!this.settings.lastBackupAt) return "No successful sync yet.";
+    return `Last successful sync: ${new Date(this.settings.lastBackupAt).toLocaleString()}`;
   }
 
   private setBackupStatus(message: string): void {
     this.backupStatus = message;
     for (const listener of this.backupStatusListeners) listener(message, false);
+  }
+
+  private getOrCreateDeviceId(): string {
+    const secretId = "github-vault-backup-device-id";
+    const existing = this.app.secretStorage.getSecret(secretId);
+    if (existing) return existing;
+    const created = crypto.randomUUID();
+    this.app.secretStorage.setSecret(secretId, created);
+    return created;
   }
 
   private async reconcileRemote(client: GitHubClient, allowFirstRestore: boolean): Promise<void> {
@@ -217,17 +231,17 @@ export default class GitHubBackupPlugin extends Plugin {
   }
 
   currentStatusLabel(): string {
-    if (this.backupRunning) return "Backup in progress";
-    if (this.settings.lastError) return "Backup needs attention";
-    if (this.settings.lastBackupAt) return "Backup is healthy";
-    return "Ready for first backup";
+    if (this.backupRunning) return "Sync in progress";
+    if (this.settings.lastError) return "Sync needs attention";
+    if (this.settings.lastBackupAt) return "Sync is healthy";
+    return "Ready for first sync";
   }
 
   private updateStatusBar(): void {
     if (!this.statusBar) return;
-    if (this.settings.lastError) this.statusBar.setText("GitHub backup: attention needed");
-    else if (this.settings.lastBackupAt) this.statusBar.setText(`GitHub backup: ${new Date(this.settings.lastBackupAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
-    else this.statusBar.setText("GitHub backup: not run");
+    if (this.settings.lastError) this.statusBar.setText("GitHub sync: attention needed");
+    else if (this.settings.lastBackupAt) this.statusBar.setText(`GitHub sync: ${new Date(this.settings.lastBackupAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+    else this.statusBar.setText("GitHub sync: not run");
     this.statusBar.setAttr("aria-label", this.statusDescription());
   }
 

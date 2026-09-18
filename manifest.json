@@ -1,9 +1,9 @@
 {
   "id": "github-vault-backup",
-  "name": "GitHub Vault Backup",
-  "version": "0.2.1",
+  "name": "GitHub Vault Sync & Backup",
+  "version": "0.3.0",
   "minAppVersion": "1.11.4",
-  "description": "Periodically back up your vault to a private GitHub repository.",
+  "description": "Synchronize multiple devices through a private GitHub repository, with conflict-safe backups.",
   "author": "Will",
   "authorUrl": "https://github.com/stackwill",
   "isDesktopOnly": false

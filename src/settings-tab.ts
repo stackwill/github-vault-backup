@@ -9,7 +9,7 @@ export class BackupSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "GitHub Vault Backup" });
+    containerEl.createEl("h2", { text: "GitHub Vault Sync" });
 
     const destination = this.plugin.isConfigured()
       ? `${this.plugin.settings.owner}/${this.plugin.settings.repo} · ${this.plugin.settings.branch}`
@@ -23,9 +23,11 @@ export class BackupSettingTab extends PluginSettingTab {
         .onClick(() => new ConnectionModal(this.app, this.plugin).open()));
 
     new Setting(containerEl)
-      .setName("Backup interval")
-      .setDesc("How often to check for changes. Unchanged vaults make only a few API requests and do not create a commit.")
+      .setName("Sync interval")
+      .setDesc("GitHub is pulled first, then local non-conflicting changes are uploaded. Unchanged vaults do not create a commit.")
       .addDropdown((dropdown) => dropdown
+        .addOption("5", "Every 5 minutes")
+        .addOption("15", "Every 15 minutes")
         .addOption("30", "Every 30 minutes")
         .addOption("60", "Every hour")
         .addOption("180", "Every 3 hours")
@@ -40,8 +42,8 @@ export class BackupSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
-      .setName("Back up after startup")
-      .setDesc("Check for changes shortly after the vault is ready.")
+      .setName("Sync when the vault opens")
+      .setDesc("Pull, merge, and upload shortly after the vault is ready.")
       .addToggle((toggle) => toggle
         .setValue(this.plugin.settings.runOnStartup)
         .onChange(async (value) => {
@@ -63,8 +65,8 @@ export class BackupSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName("Back up now")
+      .setName("Sync now")
       .setDesc(this.plugin.statusDescription())
-      .addButton((button) => button.setButtonText("Run backup").onClick(() => void this.plugin.runBackup(true)));
+      .addButton((button) => button.setButtonText("Run sync").onClick(() => void this.plugin.runBackup(true)));
   }
 }

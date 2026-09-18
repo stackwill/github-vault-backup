@@ -17,7 +17,7 @@ export class BackupModal extends Modal {
         this.statusEl?.setText(message);
         if (this.runButton) {
           this.runButton.disabled = true;
-          this.runButton.setText("Backing up…");
+          this.runButton.setText("Syncing…");
         }
       }
     });
@@ -28,7 +28,8 @@ export class BackupModal extends Modal {
   private render(): void {
     this.contentEl.empty();
     this.modalEl.addClass("github-backup-modal");
-    this.contentEl.createEl("h2", { text: "GitHub Vault Backup" });
+    this.contentEl.createEl("h2", { text: "GitHub Vault Sync" });
+    this.contentEl.createEl("p", { text: "GitHub is checked first as the shared source of truth. Non-conflicting changes from every device are merged before this device uploads." });
 
     const summary = this.contentEl.createDiv("github-backup-summary");
     summary.createEl("strong", { text: this.plugin.currentStatusLabel() });
@@ -46,9 +47,11 @@ export class BackupModal extends Modal {
       }));
 
     new Setting(this.contentEl)
-      .setName("Backup interval")
+      .setName("Sync interval")
       .setDesc("Checks that find no changes do not create a commit.")
       .addDropdown((dropdown) => dropdown
+        .addOption("5", "Every 5 minutes")
+        .addOption("15", "Every 15 minutes")
         .addOption("30", "Every 30 minutes")
         .addOption("60", "Every hour")
         .addOption("180", "Every 3 hours")
@@ -63,8 +66,8 @@ export class BackupModal extends Modal {
         }));
 
     new Setting(this.contentEl)
-      .setName("Back up after startup")
-      .setDesc("Check for vault changes shortly after Obsidian opens.")
+      .setName("Sync when the vault opens")
+      .setDesc("Pull the latest GitHub changes, merge, and upload shortly after Obsidian opens.")
       .addToggle((toggle) => toggle.setValue(this.plugin.settings.runOnStartup).onChange(async (value) => {
         this.plugin.settings.runOnStartup = value;
         await this.plugin.saveSettings();
@@ -88,10 +91,10 @@ export class BackupModal extends Modal {
 
     this.statusEl = this.contentEl.createDiv("github-backup-status");
     const actions = this.contentEl.createDiv("github-backup-actions");
-    this.runButton = actions.createEl("button", { text: "Back up now", cls: "mod-cta" });
-    if (this.plugin.currentStatusLabel() === "Backup in progress") {
+    this.runButton = actions.createEl("button", { text: "Sync now", cls: "mod-cta" });
+    if (this.plugin.currentStatusLabel() === "Sync in progress") {
       this.runButton.disabled = true;
-      this.runButton.setText("Backing up…");
+      this.runButton.setText("Syncing…");
     }
     this.runButton.addEventListener("click", () => void this.runBackup());
     if (this.plugin.settings.lastError.includes("explicitly confirm uploading these deletions")) {

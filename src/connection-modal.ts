@@ -26,7 +26,7 @@ export class ConnectionModal extends Modal {
   private frame(step: 1 | 2): void {
     this.contentEl.empty();
     this.modalEl.addClass("github-backup-modal");
-    this.contentEl.createEl("h2", { text: "Connect GitHub backup" });
+    this.contentEl.createEl("h2", { text: "Connect GitHub sync" });
     const steps = this.contentEl.createDiv("github-backup-steps");
     steps.createSpan({ text: "1  Authenticate", cls: `github-backup-step${step === 1 ? " is-active" : ""}` });
     steps.createSpan({ text: "→" });
@@ -111,7 +111,7 @@ export class ConnectionModal extends Modal {
     this.contentEl.createEl("p", { text: `Connected as ${login}. Select a dedicated private repository. Its selected branch will mirror this vault, including file deletions.` });
     let selected = this.repositories.find((repo) => repo.full_name === `${this.plugin.settings.owner}/${this.plugin.settings.repo}`) ?? this.repositories[0];
     new Setting(this.contentEl)
-      .setName("Backup repository")
+      .setName("Sync repository")
       .setDesc(`${this.repositories.length} writable private ${this.repositories.length === 1 ? "repository" : "repositories"} available`)
       .addDropdown((dropdown) => {
         for (const repo of this.repositories) dropdown.addOption(repo.full_name, repo.full_name);
@@ -119,7 +119,7 @@ export class ConnectionModal extends Modal {
           selected = this.repositories.find((repo) => repo.full_name === value) ?? selected;
         });
       });
-    this.contentEl.createEl("p", { text: "Tip: use an empty repository created without a README so the first backup starts clean.", cls: "setting-item-description" });
+    this.contentEl.createEl("p", { text: "Tip: use a dedicated private repository. On additional devices, GitHub is pulled before any local changes are uploaded.", cls: "setting-item-description" });
     this.statusEl = this.contentEl.createDiv("github-backup-status");
     const actions = this.contentEl.createDiv("github-backup-actions");
     const back = actions.createEl("button", { text: "Back" });

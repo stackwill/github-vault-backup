@@ -166,7 +166,7 @@ export class GitHubClient {
     const commit = await this.request<{ sha: string }>(`${base}/git/commits`, {
       method: "POST",
       body: JSON.stringify({
-        message: `Vault backup ${new Date().toISOString()}`,
+        message: `Vault sync ${new Date().toISOString()}`,
         tree: newTree.sha,
         parents: parentSha ? [parentSha] : []
       })
