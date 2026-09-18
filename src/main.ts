@@ -197,6 +197,12 @@ export default class GitHubBackupPlugin extends Plugin {
       const baseSha = baseFiles.get(path);
       const remoteSha = remoteFiles.get(path);
       const localSha = localFiles.get(path);
+      // On a device's first sync, GitHub is authoritative for paths it already
+      // contains. Local-only files are preserved and uploaded after the pull.
+      if (allowFirstRestore) {
+        if (remoteSha && localSha !== remoteSha) pulls.push({ path, sha: remoteSha });
+        continue;
+      }
       const localChanged = localSha !== baseSha;
       const remoteChanged = remoteSha !== baseSha;
       if (localChanged && remoteChanged && localSha !== remoteSha) conflicts.push(path);

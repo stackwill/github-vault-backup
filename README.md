@@ -31,7 +31,7 @@ The selected branch is the shared source of truth. Each device pulls and merges 
 
 ## Multiple devices
 
-On a new device, connect the same repository and choose **Sync now**. A device-local identity ensures GitHub is treated as authoritative on its first sync even if plugin settings were copied from another computer. Before every upload, the plugin compares the device's last synchronized commit with the current remote commit. Changes to different files merge automatically; the same file changed on both devices stops with a conflict and modifies neither copy. Remote deletions always require a separate confirmation.
+On a new device, connect the same repository and choose **Sync now**. A device-local identity ensures GitHub is authoritative on its first sync: remote paths replace differing local copies, while local-only files are preserved for upload. Before every later upload, the plugin compares the device's last synchronized commit with the current remote commit. Changes to different files merge automatically; the same file changed on both devices stops with a conflict and modifies neither copy. Remote deletions always require a separate confirmation.
 
 ## Releases
 
